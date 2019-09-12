@@ -13,6 +13,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	url2 "net/url"
 	"strconv"
 	"unbajaUAPI/model"
 )
@@ -100,6 +101,8 @@ func GetStudentSchedule(cookieVal string, year string, quart string) interface{}
 			}
 		})
 	})
+
+	//println("SMT: "+strconv.Itoa(numOfSemester))
 	document.Find("tbody").Each(func(i int, s *goquery.Selection) {
 		s.ChildrenFiltered("tr").Each(func(i int, tr *goquery.Selection) {
 			var scheduler []string = nil
@@ -128,6 +131,47 @@ func GetStudentSchedule(cookieVal string, year string, quart string) interface{}
 			Year:  year,
 			Quart: quart,
 			Data:  datas.Data,
+		}
+		return data
+	}
+	return nil
+}
+
+//Get list academic period
+func GetStudentScheduleList(cookieVal string) interface{} {
+	url := "http://sikadu.unbaja.ac.id/mahasiswa/akademik/jadwal"
+	document := MakeRequest(url, cookieVal)
+	numOfSemester := 0
+
+	isErr := true
+	document.Find(".col-md-12").Each(func(i int, selection *goquery.Selection) {
+		selection.ChildrenFiltered("h3").Each(func(i int, selection *goquery.Selection) {
+			if selection.Text() != "" {
+				isErr = false
+			}
+		})
+	})
+	var datas model.ScheduleList
+	document.Find("select").Each(func(i int, selection *goquery.Selection) {
+		selection.ChildrenFiltered("option").Each(func(i int, selection *goquery.Selection) {
+			numOfSemester++
+			val, _ := selection.Attr("value")
+			baseUrl, _ := url2.Parse(val)
+			query := baseUrl.Query()
+			period := query.Get("periode")
+			year := period[:4]
+			quart := period[len(period)-1:]
+			datas.List = append(datas.List, model.ScheduleListDetail{
+				Name:  selection.Text(),
+				Year:  year,
+				Quart: quart,
+			})
+		})
+	})
+	if !isErr {
+		data := model.ScheduleList{
+			SemesterAttended: numOfSemester,
+			List:             datas.List,
 		}
 		return data
 	}
@@ -171,8 +215,19 @@ func GetStudentGradeSummary(cookieVal string, studentID string) interface{} {
 			numCourse, _ := strconv.Atoi(gradesM[i][1])
 			credit, _ := strconv.Atoi(gradesM[i][2])
 			cumulative, _ := strconv.ParseFloat(gradesM[i][3], 64)
+			periodic := gradesM[i][0]
+			year := periodic[:4]
+			var quart string
+			if i%2 == 0 && num%2 == 0 {
+				quart = "1"
+			} else {
+				quart = "2"
+			}
 			datas.Data = append(datas.Data, model.GradeModelSummary{
-				Periodic:   gradesM[i][0],
+				Year:       year,
+				Quart:      quart,
+				Semester:   strconv.Itoa(i + 1),
+				Periodic:   periodic,
 				Detail:     gradesM[i][4],
 				NumCourse:  numCourse,
 				Credit:     credit,

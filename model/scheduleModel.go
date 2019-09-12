@@ -14,3 +14,10 @@ type ScheduleFull struct {
 	Year, Quart string
 	Data        []interface{}
 }
+type ScheduleList struct {
+	SemesterAttended int
+	List             []ScheduleListDetail
+}
+type ScheduleListDetail struct {
+	Name, Year, Quart string
+}

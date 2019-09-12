@@ -50,6 +50,7 @@ func initRoute() {
 	router.HandleFunc("/login/mahasiswa", loginHandlerMhs).Methods("POST")
 	router.HandleFunc("/login/dosen", loginHandlerDsn)
 	router.HandleFunc("/mahasiswa/info/{token}", mhsInfoHandler).Methods("GET")
+	router.HandleFunc("/mahasiswa/schedule/{token}", mhsScheduleList).Methods("GET")
 	//Schedule quart is 1/2 1 for odd semester 2 for even semester, Year is academic year
 	router.HandleFunc("/mahasiswa/schedule/{year}/{quart}/{token}", mhsSchedule).Methods("GET")
 	router.HandleFunc("/mahasiswa/grade/{year}/{quart}/{token}", mhsGradeDetail).Methods("GET")
@@ -64,10 +65,30 @@ func initRoute() {
 		w.WriteHeader(http.StatusNoContent)
 		return
 	})
+	router.NotFoundHandler = http.HandlerFunc(notFound)
 	router.StrictSlash(true)
 	color.Warn.Println("Connected to port " + port)
 	log.Fatal(http.ListenAndServe(":"+port, router))
 
+}
+func notFound(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	LogConsoleHttpReq(r)
+	home := res{
+		Error:   true,
+		Message: "Not found matched endpoint",
+	}
+	var homeJson = string(MustMarshal(home))
+	_, _ = fmt.Fprint(w, homeJson)
+}
+
+func mhsScheduleList(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	LogConsoleHttpReq(r)
+	param := mux.Vars(r)
+	token := param["token"]
+	data := Student.GetStudentScheduleListHub(w, token)
+	_, _ = fmt.Fprint(w, string(MustMarshal(data)))
 }
 func homeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")

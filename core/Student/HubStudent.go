@@ -51,6 +51,44 @@ func GetStudentInfoHub(w http.ResponseWriter, token string) interface{} {
 	return Inf
 }
 
+func GetStudentScheduleListHub(w http.ResponseWriter, token string) interface{} {
+	type InfoInterface struct {
+		Error   bool
+		Message string
+		Info    interface{}
+	}
+	isError := true
+	Messag := ""
+	var infos interface{} = nil
+	if token != "" {
+		isOk, data, message := libs.VerifyToken(token)
+		if isOk {
+			jsosString := MustMarshal(data)
+			var auth model.LoginAuth
+			_ = json.Unmarshal(jsosString, &auth)
+			isError = false
+			Messag = "Successfully"
+			infos = GetStudentScheduleList(auth.Cookie)
+			if infos == nil {
+				w.WriteHeader(http.StatusForbidden)
+				isError = true
+				Messag = "Not authorized"
+			}
+		} else {
+			Messag = message
+		}
+	} else {
+		Messag = "Token not found"
+	}
+
+	Inf := InfoInterface{
+		Error:   isError,
+		Message: Messag,
+		Info:    infos,
+	}
+	return Inf
+}
+
 func GetStudentScheduleHub(w http.ResponseWriter, token string, year string, quart string) interface{} {
 	type InfoInterface struct {
 		Error     bool

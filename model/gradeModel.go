@@ -7,9 +7,9 @@
 package model
 
 type GradeModelSummary struct {
-	Periodic, Detail  string
-	NumCourse, Credit int
-	Cumulative        float64
+	Year, Quart, Semester, Periodic, Detail string
+	NumCourse, Credit                       int
+	Cumulative                              float64
 }
 type GradeModel struct {
 	StudentID string
