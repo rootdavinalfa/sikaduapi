@@ -1,3 +1,6 @@
+**(c)Copyright 2019 , Davin Alfarizky Putra Basudewa all right reserved in touch with dvnlabs.ml**
+
+Email : dbasudewa@gmail.com / moshi2_davin@dvnlabs.ml
 
 ## Unofficial API untuk Sistem Informasi Akademik Universitas Banten Jaya   
 Live URL hosted on Heroku [API live](https://sikadu-unbaja.herokuapp.com/)  
