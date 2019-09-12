@@ -103,6 +103,97 @@ func GetStudentScheduleHub(w http.ResponseWriter, token string, year string, qua
 	}
 	return Inf
 }
+
+func GetStudentGradeDetailHub(w http.ResponseWriter, token string, year string, quart string) interface{} {
+	type InfoInterface struct {
+		Error     bool
+		Message   string
+		StudentID string
+		Grade     interface{}
+	}
+	isError := true
+	Messag := ""
+	studentID := ""
+	var infos interface{} = nil
+	if token != "" {
+		isOk, data, message := libs.VerifyToken(token)
+		if isOk {
+			if year == "" {
+				w.WriteHeader(http.StatusBadRequest)
+				isError = true
+				Messag = "Year empty,please insert"
+			} else if quart == "" {
+				w.WriteHeader(http.StatusBadRequest)
+				isError = true
+				Messag = "Quart empty,please insert"
+			} else if year != "" && quart != "" {
+				jsosString := MustMarshal(data)
+				var auth model.LoginAuth
+				_ = json.Unmarshal(jsosString, &auth)
+				isError = false
+				Messag = "Successfully"
+				infos = GetStudentGradeDetail(auth.Cookie, year, quart)
+				if infos == nil {
+					w.WriteHeader(http.StatusForbidden)
+					isError = true
+					Messag = "Not authorized"
+				} else {
+					studentID = auth.User
+				}
+			}
+		} else {
+			Messag = message
+		}
+	} else {
+		Messag = "Token not found"
+	}
+
+	Inf := InfoInterface{
+		Error:     isError,
+		Message:   Messag,
+		StudentID: studentID,
+		Grade:     infos,
+	}
+	return Inf
+}
+
+func GetStudentGradeSummaryHub(w http.ResponseWriter, token string) interface{} {
+	type InfoInterface struct {
+		Error   bool
+		Message string
+		Grade   interface{}
+	}
+	isError := true
+	Messag := ""
+	var grades interface{} = nil
+	if token != "" {
+		isOk, data, message := libs.VerifyToken(token)
+		if isOk {
+			jsosString := MustMarshal(data)
+			var auth model.LoginAuth
+			_ = json.Unmarshal(jsosString, &auth)
+			isError = false
+			Messag = "Successfully"
+			grades = GetStudentGradeSummary(auth.Cookie, auth.User)
+			if grades == nil {
+				w.WriteHeader(http.StatusForbidden)
+				isError = true
+				Messag = "Not authorized"
+			}
+		} else {
+			Messag = message
+		}
+	} else {
+		Messag = "Token not found"
+	}
+
+	Inf := InfoInterface{
+		Error:   isError,
+		Message: Messag,
+		Grade:   grades,
+	}
+	return Inf
+}
 func MustMarshal(data interface{}) []byte {
 	out, err := json.Marshal(data)
 	if err != nil {

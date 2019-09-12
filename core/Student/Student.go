@@ -7,7 +7,10 @@
 package Student
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"github.com/PuerkitoBio/goquery"
+	"io"
 	"log"
 	"net/http"
 	"strconv"
@@ -16,27 +19,7 @@ import (
 
 func GetStudentInfo(cookieVal string) interface{} {
 	url := "http://sikadu.unbaja.ac.id/mahasiswa/"
-	client := http.Client{}
-	request, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-	// Create a new cookie with the only required fields
-	myCookie := &http.Cookie{
-		Name:  "ci_session",
-		Value: cookieVal,
-	}
-	// Add the cookie to request
-	request.AddCookie(myCookie)
-	resp, err := client.Do(request)
-	if err != nil {
-		println(err.Error())
-	}
-	// Create a goquery document from the HTTP response
-	document, err := goquery.NewDocumentFromReader(resp.Body)
-	if err != nil {
-		log.Fatal("Error loading HTTP response body. ", err)
-	}
+	document := MakeRequest(url, cookieVal)
 
 	religion := ""
 	address := ""
@@ -105,6 +88,179 @@ func GetStudentInfo(cookieVal string) interface{} {
 }
 func GetStudentSchedule(cookieVal string, year string, quart string) interface{} {
 	url := "http://sikadu.unbaja.ac.id/mahasiswa/akademik/jadwal?periode=" + year + quart
+	document := MakeRequest(url, cookieVal)
+	//Schedule parsing
+	scheduleM := map[int][]string{}
+	num := 0
+	isErr := true
+	document.Find(".col-md-12").Each(func(i int, selection *goquery.Selection) {
+		selection.ChildrenFiltered("h3").Each(func(i int, selection *goquery.Selection) {
+			if selection.Text() != "" {
+				isErr = false
+			}
+		})
+	})
+	document.Find("tbody").Each(func(i int, s *goquery.Selection) {
+		s.ChildrenFiltered("tr").Each(func(i int, tr *goquery.Selection) {
+			var scheduler []string = nil
+			tr.ChildrenFiltered("td").Each(func(i int, td *goquery.Selection) {
+				scheduler = append(scheduler, td.Text())
+			})
+			scheduleM[num] = scheduler
+			num++
+		})
+	})
+	if !isErr {
+		var datas model.ScheduleFull
+		for i := 0; i < len(scheduleM); i++ {
+			smt, _ := strconv.Atoi(scheduleM[i][1])
+			datas.Data = append(datas.Data, model.ScheduleStudentPeriode{
+				CourseName: scheduleM[i][0],
+				Class:      scheduleM[i][2],
+				Room:       scheduleM[i][4],
+				Lecturer:   scheduleM[i][3],
+				Days:       scheduleM[i][5],
+				Semester:   smt,
+			})
+		}
+
+		data := model.ScheduleFull{
+			Year:  year,
+			Quart: quart,
+			Data:  datas.Data,
+		}
+		return data
+	}
+	return nil
+}
+
+/*Section for grade getter
+GetStudentGradeSummary for getting your average grade on all academic period you attented
+GetStudentGradeDetail for getting grade for individual course grade*/
+
+func GetStudentGradeSummary(cookieVal string, studentID string) interface{} {
+	url := "http://sikadu.unbaja.ac.id/mahasiswa/akademik/khs"
+	document := MakeRequest(url, cookieVal)
+
+	isErr := true
+
+	//Check is login or not by checking h3 tag
+	document.Find(".col-md-12").Each(func(i int, selection *goquery.Selection) {
+		selection.ChildrenFiltered("h3").Each(func(i int, selection *goquery.Selection) {
+			if selection.Text() != "" {
+				isErr = false
+			}
+		})
+	})
+	gradesM := map[int][]string{}
+	num := 0
+	//Select element
+	document.Find("tbody").Each(func(i int, s *goquery.Selection) {
+		s.ChildrenFiltered("tr").Each(func(i int, tr *goquery.Selection) {
+			var grader []string = nil
+			tr.ChildrenFiltered("td").Each(func(i int, td *goquery.Selection) {
+				grader = append(grader, td.Text())
+			})
+			gradesM[num] = grader
+			num++
+		})
+	})
+	if !isErr {
+		var datas model.GradeModel
+		for i := 0; i < len(gradesM); i++ {
+			numCourse, _ := strconv.Atoi(gradesM[i][1])
+			credit, _ := strconv.Atoi(gradesM[i][2])
+			cumulative, _ := strconv.ParseFloat(gradesM[i][3], 64)
+			datas.Data = append(datas.Data, model.GradeModelSummary{
+				Periodic:   gradesM[i][0],
+				Detail:     gradesM[i][4],
+				NumCourse:  numCourse,
+				Credit:     credit,
+				Cumulative: cumulative,
+			})
+		}
+
+		data := model.GradeModel{
+			StudentID: studentID,
+			Data:      datas.Data,
+		}
+		return data
+	}
+	return nil
+}
+func GetStudentGradeDetail(cookieVal string, year string, quart string) interface{} {
+	hash := md5.New()
+
+	_, _ = io.WriteString(hash, year+quart) // append into the hash
+
+	url := "http://sikadu.unbaja.ac.id/mahasiswa/akademik/khs/view/" + hex.EncodeToString(hash.Sum(nil))
+	document := MakeRequest(url, cookieVal)
+	gradesM := map[int][]string{}
+	num := 0
+	isErr := true
+	document.Find(".col-md-12").Each(func(i int, selection *goquery.Selection) {
+		selection.ChildrenFiltered("h3").Each(func(i int, selection *goquery.Selection) {
+			if selection.Text() != "" {
+				isErr = false
+			}
+		})
+	})
+	document.Find("tbody").Each(func(i int, s *goquery.Selection) {
+		s.ChildrenFiltered("tr").Each(func(i int, tr *goquery.Selection) {
+			var grader []string = nil
+			tr.ChildrenFiltered("td").Each(func(i int, td *goquery.Selection) {
+				grader = append(grader, td.Text())
+				//fmt.Print(td.Text())
+			})
+			gradesM[num] = grader
+			num++
+		})
+	})
+	if !isErr {
+		var datas model.GradeModelFull
+		lastRow := len(gradesM)
+		//Read cumulative
+		cumulative, _ := strconv.ParseFloat(gradesM[lastRow-1][1], 64)
+		//Delete last row due not related to grade
+		delete(gradesM, lastRow-1)
+		//
+		for i := 0; i < len(gradesM); i++ {
+			num, _ := strconv.Atoi(gradesM[i][0])
+			credit, _ := strconv.Atoi(gradesM[i][2])
+			avail, _ := strconv.ParseFloat(gradesM[i][3], 64)
+			quiz, _ := strconv.ParseFloat(gradesM[i][4], 64)
+			assign, _ := strconv.ParseFloat(gradesM[i][5], 64)
+			mid, _ := strconv.ParseFloat(gradesM[i][6], 64)
+			last, _ := strconv.ParseFloat(gradesM[i][7], 64)
+			gradef, _ := strconv.ParseFloat(gradesM[i][9], 64)
+			datas.Data = append(datas.Data, model.GradeModelDetail{
+				CourseName:   gradesM[i][1],
+				GradeLetter:  gradesM[i][8],
+				Num:          num,
+				Credit:       credit,
+				Availability: avail,
+				Quiz:         quiz,
+				Assignment:   assign,
+				MidTerm:      mid,
+				LastTerm:     last,
+				GradePoint:   gradef,
+			})
+		}
+
+		data := model.GradeModelFull{
+			Year:       year,
+			Quart:      quart,
+			Cumulative: cumulative,
+			Data:       datas.Data,
+		}
+		return data
+	}
+	return nil
+}
+
+//This function for make request to some url,add cookie and returned document which is ready to implemented
+func MakeRequest(url string, cookieVal string) *goquery.Document {
+	//url := "http://sikadu.unbaja.ac.id/mahasiswa/"
 	client := http.Client{}
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -126,59 +282,5 @@ func GetStudentSchedule(cookieVal string, year string, quart string) interface{}
 	if err != nil {
 		log.Fatal("Error loading HTTP response body. ", err)
 	}
-	//Schedule parsing
-	//var schedules []interface{}
-	scheduleM := map[int][]string{}
-	num := 0
-	isErr := true
-	document.Find(".col-md-12").Each(func(i int, selection *goquery.Selection) {
-		selection.ChildrenFiltered("h3").Each(func(i int, selection *goquery.Selection) {
-			if selection.Text() != "" {
-				isErr = false
-			}
-		})
-	})
-	document.Find("tbody").Each(func(i int, s *goquery.Selection) {
-		s.ChildrenFiltered("tr").Each(func(i int, tr *goquery.Selection) {
-			//println("")
-			var scheduler []string = nil
-			tr.ChildrenFiltered("td").Each(func(i int, td *goquery.Selection) {
-				//print(td.Text())
-				scheduler = append(scheduler, td.Text())
-			})
-			//schedules = append(schedules,scheduler)
-			scheduleM[num] = scheduler
-			num++
-		})
-	})
-	if !isErr {
-		var datas model.ScheduleFull
-		for i := 0; i < len(scheduleM); i++ {
-			/*for a := 0;a< len(scheduleM[i]);a++{
-				println(scheduleM[i][a])
-			}*/
-			smt, _ := strconv.Atoi(scheduleM[i][1])
-			datas.Data = append(datas.Data, model.ScheduleStudentPeriode{
-				CourseName: scheduleM[i][0],
-				Class:      scheduleM[i][2],
-				Room:       scheduleM[i][3],
-				Lecturer:   scheduleM[i][4],
-				Days:       scheduleM[i][5],
-				Semester:   smt,
-			})
-		}
-		//test := MustMarshal(schedules)
-		//print(string(test))
-		/*for k, v := range scheduleM {
-			fmt.Printf("key[%s] value[%s]\n", k, v)
-		}*/
-
-		data := model.ScheduleFull{
-			Year:  year,
-			Quart: quart,
-			Data:  datas.Data,
-		}
-		return data
-	}
-	return nil
+	return document
 }

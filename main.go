@@ -52,6 +52,10 @@ func initRoute() {
 	router.HandleFunc("/mahasiswa/info/{token}", mhsInfoHandler).Methods("GET")
 	//Schedule quart is 1/2 1 for odd semester 2 for even semester, Year is academic year
 	router.HandleFunc("/mahasiswa/schedule/{year}/{quart}/{token}", mhsSchedule).Methods("GET")
+	router.HandleFunc("/mahasiswa/grade/{year}/{quart}/{token}", mhsGradeDetail).Methods("GET")
+	//Handler for get summary grade
+	router.HandleFunc("/mahasiswa/grade/summary/{token}", mhsGradeSummary).Methods("GET")
+
 	// Handle all preflight request
 	router.Methods("OPTIONS").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -168,6 +172,25 @@ func mhsSchedule(w http.ResponseWriter, r *http.Request) {
 	year := params["year"]
 	quart := params["quart"]
 	data := Student.GetStudentScheduleHub(w, token, year, quart)
+	_, _ = fmt.Fprint(w, string(MustMarshal(data)))
+}
+
+func mhsGradeDetail(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	LogConsoleHttpReq(r)
+	params := mux.Vars(r)
+	token := params["token"]
+	year := params["year"]
+	quart := params["quart"]
+	data := Student.GetStudentGradeDetailHub(w, token, year, quart)
+	_, _ = fmt.Fprint(w, string(MustMarshal(data)))
+}
+func mhsGradeSummary(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	LogConsoleHttpReq(r)
+	params := mux.Vars(r)
+	token := params["token"]
+	data := Student.GetStudentGradeSummaryHub(w, token)
 	_, _ = fmt.Fprint(w, string(MustMarshal(data)))
 }
 
