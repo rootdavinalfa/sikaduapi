@@ -27,7 +27,7 @@ type res struct {
 	Error       bool
 	Message     string
 	Description string
-	HomePage    string
+	SourceCode  string
 	Creator     string
 }
 type data struct {
@@ -77,7 +77,7 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 		Message:     "(c)2019 dvnlabs.ml -> Davin Alfarizky Putra Basudewa",
 		Description: "This is Unofficial API for sikadu.unbaja.ac.id JSON Ready! 🎏 🈷 . You must /login/mahasiswa before any request and save token.The token is valid for 1 hour.Because sikadu not even have error handler,we cannot determine token is valid or not",
 		Creator:     "https://dvnlabs.ml",
-		HomePage:    "https://github.com/rootdavinalfa",
+		SourceCode:  "https://github.com/rootdavinalfa/sikaduapi",
 	}
 	var homeJson = string(MustMarshal(home))
 	_, _ = fmt.Fprint(w, homeJson)
