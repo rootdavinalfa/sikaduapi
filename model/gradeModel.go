@@ -13,6 +13,7 @@ type GradeModelSummary struct {
 }
 type GradeModel struct {
 	StudentID string
+	GPA       float64
 	Data      []interface{}
 }
 type GradeModelFull struct {

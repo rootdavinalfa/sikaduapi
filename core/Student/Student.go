@@ -12,6 +12,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"io"
 	"log"
+	"math"
 	"net/http"
 	url2 "net/url"
 	"strconv"
@@ -220,6 +221,8 @@ func GetStudentGradeSummary(cookieVal string, studentID string) interface{} {
 		})
 	})
 	if !isErr {
+		gpa := 0.0
+		firstgpa := 0.0
 		var datas model.GradeModel
 		for i := 0; i < len(gradesM); i++ {
 			numCourse, _ := strconv.Atoi(gradesM[i][1])
@@ -233,6 +236,8 @@ func GetStudentGradeSummary(cookieVal string, studentID string) interface{} {
 			} else {
 				quart = "2"
 			}
+			gpa = cumulative + firstgpa
+			firstgpa = gpa
 			datas.Data = append(datas.Data, model.GradeModelSummary{
 				Year:       year,
 				Quart:      quart,
@@ -244,9 +249,12 @@ func GetStudentGradeSummary(cookieVal string, studentID string) interface{} {
 				Cumulative: cumulative,
 			})
 		}
+		gpa = gpa / float64(len(gradesM))
+		gpa = math.Round(gpa*100) / 100
 
 		data := model.GradeModel{
 			StudentID: studentID,
+			GPA:       gpa,
 			Data:      datas.Data,
 		}
 		return data
