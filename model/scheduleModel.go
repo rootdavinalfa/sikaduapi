@@ -9,6 +9,10 @@ package model
 type ScheduleStudentPeriode struct {
 	CourseName, Class, Room, Lecturer, Days string
 	Semester                                int
+	Times                                   ScheduleTime
+}
+type ScheduleTime struct {
+	FromTime, ToTime string
 }
 type ScheduleFull struct {
 	Year, Quart string

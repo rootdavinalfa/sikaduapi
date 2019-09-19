@@ -117,6 +117,7 @@ func GetStudentSchedule(cookieVal string, year string, quart string) interface{}
 		var datas model.ScheduleFull
 		for i := 0; i < len(scheduleM); i++ {
 			smt, _ := strconv.Atoi(scheduleM[i][1])
+			times := scheduleM[i][6]
 			datas.Data = append(datas.Data, model.ScheduleStudentPeriode{
 				CourseName: scheduleM[i][0],
 				Class:      scheduleM[i][2],
@@ -124,6 +125,9 @@ func GetStudentSchedule(cookieVal string, year string, quart string) interface{}
 				Lecturer:   scheduleM[i][3],
 				Days:       scheduleM[i][5],
 				Semester:   smt,
+				Times: struct {
+					FromTime, ToTime string
+				}{FromTime: times[:8], ToTime: times[len(times)-8:]},
 			})
 		}
 
