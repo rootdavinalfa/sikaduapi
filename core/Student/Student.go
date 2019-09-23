@@ -224,6 +224,9 @@ func GetStudentGradeSummary(cookieVal string, studentID string) interface{} {
 		gpa := 0.0
 		firstgpa := 0.0
 		var datas model.GradeModel
+
+		completedGrade := 0
+
 		for i := 0; i < len(gradesM); i++ {
 			numCourse, _ := strconv.Atoi(gradesM[i][1])
 			credit, _ := strconv.Atoi(gradesM[i][2])
@@ -236,6 +239,9 @@ func GetStudentGradeSummary(cookieVal string, studentID string) interface{} {
 				quart = "1"
 			} else if evenOdd == "ap" {
 				quart = "2"
+			}
+			if gradesM[i][4] != "Nilai Belum Lengkap" {
+				completedGrade++
 			}
 			gpa = cumulative + firstgpa
 			firstgpa = gpa
@@ -250,7 +256,7 @@ func GetStudentGradeSummary(cookieVal string, studentID string) interface{} {
 				Cumulative: cumulative,
 			})
 		}
-		gpa = gpa / float64(len(gradesM))
+		gpa = gpa / float64(completedGrade)
 		gpa = math.Round(gpa*100) / 100
 
 		data := model.GradeModel{
@@ -299,6 +305,10 @@ func GetStudentGradeDetail(cookieVal string, year string, quart string) interfac
 		delete(gradesM, lastRow-1)
 		//
 		for i := 0; i < len(gradesM); i++ {
+			gradeLetter := "n/a"
+			if gradesM[i][8] != "0" {
+				gradeLetter = gradesM[i][8]
+			}
 			num, _ := strconv.Atoi(gradesM[i][0])
 			credit, _ := strconv.Atoi(gradesM[i][2])
 			avail, _ := strconv.ParseFloat(gradesM[i][3], 64)
@@ -309,7 +319,7 @@ func GetStudentGradeDetail(cookieVal string, year string, quart string) interfac
 			gradef, _ := strconv.ParseFloat(gradesM[i][9], 64)
 			datas.Data = append(datas.Data, model.GradeModelDetail{
 				CourseName:   gradesM[i][1],
-				GradeLetter:  gradesM[i][8],
+				GradeLetter:  gradeLetter,
 				Num:          num,
 				Credit:       credit,
 				Availability: avail,
