@@ -229,11 +229,12 @@ func GetStudentGradeSummary(cookieVal string, studentID string) interface{} {
 			credit, _ := strconv.Atoi(gradesM[i][2])
 			cumulative, _ := strconv.ParseFloat(gradesM[i][3], 64)
 			periodic := gradesM[i][0]
+			evenOdd := periodic[len(periodic)-2:]
 			year := periodic[:4]
 			var quart string
-			if i%2 == 0 && num%2 == 0 {
+			if evenOdd == "il" {
 				quart = "1"
-			} else {
+			} else if evenOdd == "ap" {
 				quart = "2"
 			}
 			gpa = cumulative + firstgpa
