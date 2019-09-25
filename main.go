@@ -56,6 +56,8 @@ func initRoute() {
 	router.HandleFunc("/mahasiswa/grade/{year}/{quart}/{token}", mhsGradeDetail).Methods("GET")
 	//Handler for get summary grade
 	router.HandleFunc("/mahasiswa/grade/summary/{token}", mhsGradeSummary).Methods("GET")
+	//Handler for get finance status
+	router.HandleFunc("/mahasiswa/finance/{token}", mhsFinance).Methods("GET")
 
 	// Handle all preflight request
 	router.Methods("OPTIONS").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -212,6 +214,15 @@ func mhsGradeSummary(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	token := params["token"]
 	data := Student.GetStudentGradeSummaryHub(w, token)
+	_, _ = fmt.Fprint(w, string(MustMarshal(data)))
+}
+
+func mhsFinance(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	LogConsoleHttpReq(r)
+	params := mux.Vars(r)
+	token := params["token"]
+	data := Student.GetStudentFinanceStatus(w, token)
 	_, _ = fmt.Fprint(w, string(MustMarshal(data)))
 }
 

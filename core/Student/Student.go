@@ -9,6 +9,7 @@ package Student
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"io"
 	"log"
@@ -16,6 +17,7 @@ import (
 	"net/http"
 	url2 "net/url"
 	"strconv"
+	"strings"
 	"unbajaUAPI/model"
 )
 
@@ -338,6 +340,86 @@ func GetStudentGradeDetail(cookieVal string, year string, quart string) interfac
 			Data:       datas.Data,
 		}
 		return data
+	}
+	return nil
+}
+func GetFinanceStatus(cookieVal string) interface{} {
+	url := "http://sikadu.unbaja.ac.id/mahasiswa/Keuangan"
+	document := MakeRequest(url, cookieVal)
+
+	finances := map[int][]string{}
+	num := 0
+	isErr := true
+
+	//Check is login or not by checking h3 tag
+	document.Find(".col-lg-12").Each(func(i int, selection *goquery.Selection) {
+		selection.ChildrenFiltered("h1").Each(func(i int, selection *goquery.Selection) {
+			if selection.Text() != "" {
+				isErr = false
+				fmt.Println(selection.Text())
+			}
+		})
+	})
+
+	document.Find("tbody").Each(func(i int, s *goquery.Selection) {
+		s.ChildrenFiltered("tr").Each(func(i int, tr *goquery.Selection) {
+			var finance []string = nil
+			tr.ChildrenFiltered("td").Each(func(i int, td *goquery.Selection) {
+				finance = append(finance, td.Text())
+				//fmt.Print(td.Text())
+			})
+			finances[num] = finance
+			num++
+		})
+	})
+	if !isErr {
+		var data model.FinanceDetail
+		id := ""
+		names := ""
+		for i := 0; i < len(finances); i++ {
+			no, _ := strconv.Atoi(finances[i][0])
+			studentid := finances[i][1]
+			name := finances[i][2]
+			period := finances[i][3]
+			first, _ := strconv.Atoi(strings.Replace(finances[i][4], ",", "", -1))
+			second, _ := strconv.Atoi(strings.Replace(finances[i][5], ",", "", -1))
+			third, _ := strconv.Atoi(strings.Replace(finances[i][6], ",", "", -1))
+			remain := first + second + third
+			oddEven := period[len(period)-3:]
+			percentage := 0.00
+			status := "Belum Lunas"
+			if remain == 0 {
+				status = "Lunas"
+			}
+			if oddEven == "jil" {
+				paid := 5025000 - remain
+				percentage = float64(paid * 100 / 5025000)
+			} else {
+				paid := 5000000 - remain
+				percentage = float64(paid * 100 / 5000000)
+			}
+
+			//percentage :=
+			data.Bill = append(data.Bill, model.FinanceBilled{
+				No:         no,
+				Period:     period,
+				First:      first,
+				Second:     second,
+				Third:      third,
+				Remain:     remain,
+				Percentage: percentage,
+				Status:     status,
+			})
+			id = studentid
+			names = name
+		}
+		datas := model.FinanceDetail{
+			StudentID: id,
+			Name:      names,
+			Bill:      data.Bill,
+		}
+		return datas
+
 	}
 	return nil
 }

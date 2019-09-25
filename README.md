@@ -1,3 +1,4 @@
+
 **(c)Copyright 2019 , Davin Alfarizky Putra Basudewa all right reserved in touch with dvnlabs.ml**
 
 Email : dbasudewa@gmail.com / moshi2_davin@dvnlabs.ml
@@ -40,6 +41,7 @@ Dikarenakan website sikadu.unbaja.ac.id memakai FW PHP codeigniter maka session 
  4. **/mahasiswa/schedule/{year}/{quart}/{token}** untuk melihat jadwal anda.Year anda isi dengan tahun akademik anda,quart anda isi dengan 1/2.Angka 1 untuk semester ganjil dan 2 untuk genap.Untuk token sama seperti diatas.  
  5. **/mahasiswa/grade/summary/{token}** untuk melihat secara umu nilai anda selama di kampus  
  6. **/mahasiswa/grade/{year}/{quart}/{token}** untuk melihat detail nilai anda di semester terkait  
+ 7. **/mahasiswa/finance/{token}** untuk melihat detail pembayaran dan kekurangannya serta persentase pembayaran
   
 ## Example Request  
   **NOTE:**
@@ -56,19 +58,23 @@ Dikarenakan website sikadu.unbaja.ac.id memakai FW PHP codeigniter maka session 
 **Get Request** 
 Mendapatkan info mahasiswa yang login
 
-    <GET> https://https://sikadu-unbaja.herokuapp.com/mahasiswa/info/{TOKEN_YANG_DIDAPAT_DARI_LOGIN}
+    <GET> https://sikadu-unbaja.herokuapp.com/mahasiswa/info/{TOKEN_YANG_DIDAPAT_DARI_LOGIN}
 
 **Mendapatkan Jadwal pada tahun akademik 2018/2019 semester 2**
 
-    <GET> https://https://sikadu-unbaja.herokuapp.com/mahasiswa/schedule/2018/2/{TOKEN_YANG_DIDAPAT_DARI_LOGIN}
+    <GET> https://sikadu-unbaja.herokuapp.com/mahasiswa/schedule/2018/2/{TOKEN_YANG_DIDAPAT_DARI_LOGIN}
 
 **Mendapat nilai selama berkuliah**
 
-    <GET> https://https://sikadu-unbaja.herokuapp.com/mahasiswa/grade/summary/{TOKEN_YANG_DIDAPAT_DARI_LOGIN}
+    <GET> https://sikadu-unbaja.herokuapp.com/mahasiswa/grade/summary/{TOKEN_YANG_DIDAPAT_DARI_LOGIN}
 
 **Mendapat detail mata kuliah nilai di tahun akademik 2018/2019 semester 1**
 
-    <GET> https://https://sikadu-unbaja.herokuapp.com/mahasiswa/grade/2018/1/{TOKEN_YANG_DIDAPAT_DARI_LOGIN}
+    <GET> https://sikadu-unbaja.herokuapp.com/mahasiswa/grade/2018/1/{TOKEN_YANG_DIDAPAT_DARI_LOGIN}
+
+**Mendapat detail keuangan**
+
+    <GET> https://sikadu-unbaja.herokuapp.com/mahasiswa/finance/{TOKEN_YANG_DIDAPAT_DARI_LOGIN}
 
   
 ## Persyaratan di Server sendiri  
