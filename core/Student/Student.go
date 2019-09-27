@@ -9,7 +9,6 @@ package Student
 import (
 	"crypto/md5"
 	"encoding/hex"
-	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"io"
 	"log"
@@ -356,7 +355,6 @@ func GetFinanceStatus(cookieVal string) interface{} {
 		selection.ChildrenFiltered("h1").Each(func(i int, selection *goquery.Selection) {
 			if selection.Text() != "" {
 				isErr = false
-				fmt.Println(selection.Text())
 			}
 		})
 	})
@@ -387,22 +385,32 @@ func GetFinanceStatus(cookieVal string) interface{} {
 			remain := first + second + third
 			oddEven := period[len(period)-3:]
 			percentage := 0.00
+			quart := 0
+			chrged := 0
+			paid := 0
 			status := "Belum Lunas"
 			if remain == 0 {
 				status = "Lunas"
 			}
 			if oddEven == "jil" {
-				paid := 5025000 - remain
-				percentage = float64(paid * 100 / 5025000)
+				chrged = 5025000
+				quart = 1
+				paid = chrged - remain
+				percentage = float64(paid * 100 / chrged)
 			} else {
-				paid := 5000000 - remain
-				percentage = float64(paid * 100 / 5000000)
+				chrged = 5000000
+				quart = 2
+				paid = chrged - remain
+				percentage = float64(paid * 100 / chrged)
 			}
 
 			//percentage :=
 			data.Bill = append(data.Bill, model.FinanceBilled{
 				No:         no,
 				Period:     period,
+				Quart:      quart,
+				Charged:    chrged,
+				Paid:       paid,
 				First:      first,
 				Second:     second,
 				Third:      third,
