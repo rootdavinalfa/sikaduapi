@@ -242,10 +242,11 @@ func GetStudentGradeSummary(cookieVal string, studentID string) interface{} {
 				quart = "2"
 			}
 			if gradesM[i][4] != "Nilai Belum Lengkap" {
+				gpa = cumulative + firstgpa
+				firstgpa = gpa
 				completedGrade++
 			}
-			gpa = cumulative + firstgpa
-			firstgpa = gpa
+
 			datas.Data = append(datas.Data, model.GradeModelSummary{
 				Year:       year,
 				Quart:      quart,
