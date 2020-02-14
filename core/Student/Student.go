@@ -292,7 +292,6 @@ func GetStudentGradeDetail(cookieVal string, year string, quart string) interfac
 			var grader []string = nil
 			tr.ChildrenFiltered("td").Each(func(i int, td *goquery.Selection) {
 				grader = append(grader, td.Text())
-				//fmt.Print(td.Text())
 			})
 			gradesM[num] = grader
 			num++
@@ -308,28 +307,28 @@ func GetStudentGradeDetail(cookieVal string, year string, quart string) interfac
 		//
 		for i := 0; i < len(gradesM); i++ {
 			gradeLetter := "n/a"
-			if gradesM[i][8] != "0" {
-				gradeLetter = gradesM[i][8]
+			if gradesM[i][4] != "0" {
+				gradeLetter = gradesM[i][3]
 			}
 			num, _ := strconv.Atoi(gradesM[i][0])
 			credit, _ := strconv.Atoi(gradesM[i][2])
-			avail, _ := strconv.ParseFloat(gradesM[i][3], 64)
-			quiz, _ := strconv.ParseFloat(gradesM[i][4], 64)
-			assign, _ := strconv.ParseFloat(gradesM[i][5], 64)
-			mid, _ := strconv.ParseFloat(gradesM[i][6], 64)
-			last, _ := strconv.ParseFloat(gradesM[i][7], 64)
-			gradef, _ := strconv.ParseFloat(gradesM[i][9], 64)
+			//avail, _ := strconv.ParseFloat(gradesM[i][3], 64)
+			//quiz, _ := strconv.ParseFloat(gradesM[i][4], 64)
+			//assign, _ := strconv.ParseFloat(gradesM[i][5], 64)
+			//mid, _ := strconv.ParseFloat(gradesM[i][6], 64)
+			//last, _ := strconv.ParseFloat(gradesM[i][7], 64)
+			gradef, _ := strconv.ParseFloat(gradesM[i][4], 64)
 			datas.Data = append(datas.Data, model.GradeModelDetail{
-				CourseName:   gradesM[i][1],
-				GradeLetter:  gradeLetter,
-				Num:          num,
-				Credit:       credit,
-				Availability: avail,
+				CourseName:  gradesM[i][1],
+				GradeLetter: gradeLetter,
+				Num:         num,
+				Credit:      credit,
+				/*Availability: avail,
 				Quiz:         quiz,
 				Assignment:   assign,
 				MidTerm:      mid,
-				LastTerm:     last,
-				GradePoint:   gradef,
+				LastTerm:     last,*/
+				GradePoint: gradef,
 			})
 		}
 
