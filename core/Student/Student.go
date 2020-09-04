@@ -66,23 +66,24 @@ func GetStudentInfo(cookieVal string) interface{} {
 	})
 	if (infose != nil && address != "" && religion != "") || profilePict != "" {
 		data := model.BasicStudentInfo{
-			NPM:         infose[0],
-			Name:        infose[1],
-			PlaceBorn:   infose[2],
-			BornOn:      infose[3],
-			Gender:      infose[4],
+			NIK:         infose[0],
+			NPM:         infose[1],
+			Name:        infose[2],
+			PlaceBorn:   infose[3],
+			BornOn:      infose[4],
+			Gender:      infose[5],
 			Religion:    religion,
-			Phone:       infose[5],
-			Email:       infose[6],
+			Phone:       infose[6],
+			Email:       infose[7],
 			Address:     address,
 			ProfilePict: profilePict,
 			College: model.StudentInfoOnCollege{
-				Faculty: infose[7],
-				Branch:  infose[8],
-				Degree:  infose[9],
-				Class:   infose[10],
-				Group:   infose[11],
-				Status:  infose[12],
+				Faculty: infose[8],
+				Branch:  infose[9],
+				Degree:  infose[10],
+				Class:   infose[11],
+				Group:   infose[12],
+				Status:  infose[13],
 			},
 		}
 		return data
