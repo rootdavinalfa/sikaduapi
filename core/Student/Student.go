@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019. dvnlabs.ml
+ * Copyright (c) 2019 -2020. dvnlabs.xyz
  * Davin Alfarizky Putra Basudewa <dbasudewa@gmail.com>
  * API For sikadu.unbaja.ac.id
  */
@@ -17,11 +17,12 @@ import (
 	url2 "net/url"
 	"strconv"
 	"strings"
+	siteUrl "unbajaUAPI/config"
 	"unbajaUAPI/model"
 )
 
 func GetStudentInfo(cookieVal string) interface{} {
-	url := "http://sikadu.unbaja.ac.id/mahasiswa/"
+	url := siteUrl.ProfileUrlMahasiswa
 	document := MakeRequest(url, cookieVal)
 
 	religion := ""
@@ -31,7 +32,7 @@ func GetStudentInfo(cookieVal string) interface{} {
 	// Find all links and process them with the function
 	// defined earlier
 	//Data except religion and address
-	document.Find(".form-control").Each(func(index int, element *goquery.Selection) {
+	document.Find(".form-horizontal .form-control").Each(func(index int, element *goquery.Selection) {
 		// See if the href attribute exists on the element
 		divForm, exists := element.Attr("value")
 		if exists {
@@ -91,7 +92,7 @@ func GetStudentInfo(cookieVal string) interface{} {
 	return nil
 }
 func GetStudentSchedule(cookieVal string, year string, quart string) interface{} {
-	url := "http://sikadu.unbaja.ac.id/mahasiswa/akademik/jadwal?periode=" + year + quart
+	url := siteUrl.ProfileUrlDetailedSchedule + year + quart
 	document := MakeRequest(url, cookieVal)
 	//Schedule parsing
 	scheduleM := map[int][]string{}
@@ -152,7 +153,7 @@ func GetStudentSchedule(cookieVal string, year string, quart string) interface{}
 
 //Get list academic period
 func GetStudentScheduleList(cookieVal string) interface{} {
-	url := "http://sikadu.unbaja.ac.id/mahasiswa/akademik/jadwal"
+	url := siteUrl.ProfileUrlSchedule
 	document := MakeRequest(url, cookieVal)
 	numOfSemester := 0
 
@@ -196,7 +197,7 @@ GetStudentGradeSummary for getting your average grade on all academic period you
 GetStudentGradeDetail for getting grade for individual course grade*/
 
 func GetStudentGradeSummary(cookieVal string, studentID string) interface{} {
-	url := "http://sikadu.unbaja.ac.id/mahasiswa/akademik/khs"
+	url := siteUrl.ProfileUrlKhs
 	document := MakeRequest(url, cookieVal)
 
 	isErr := true
@@ -276,7 +277,7 @@ func GetStudentGradeDetail(cookieVal string, year string, quart string) interfac
 
 	_, _ = io.WriteString(hash, year+quart) // append into the hash
 
-	url := "http://sikadu.unbaja.ac.id/mahasiswa/akademik/khs/view/" + hex.EncodeToString(hash.Sum(nil))
+	url := siteUrl.ProfileUrlKhsDetailed + hex.EncodeToString(hash.Sum(nil))
 	document := MakeRequest(url, cookieVal)
 	gradesM := map[int][]string{}
 	num := 0
@@ -344,7 +345,7 @@ func GetStudentGradeDetail(cookieVal string, year string, quart string) interfac
 	return nil
 }
 func GetFinanceStatus(cookieVal string) interface{} {
-	url := "http://sikadu.unbaja.ac.id/mahasiswa/Keuangan"
+	url := siteUrl.ProfileUrlTuition
 	document := MakeRequest(url, cookieVal)
 
 	finances := map[int][]string{}
@@ -435,7 +436,6 @@ func GetFinanceStatus(cookieVal string) interface{} {
 
 //This function for make request to some url,add cookie and returned document which is ready to implemented
 func MakeRequest(url string, cookieVal string) *goquery.Document {
-	//url := "http://sikadu.unbaja.ac.id/mahasiswa/"
 	client := http.Client{}
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
