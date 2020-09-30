@@ -36,6 +36,27 @@ type data struct {
 	Data    interface{}
 }
 
+func CORS(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		// Set headers
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, Access-Control-Request-Headers, Access-Control-Request-Method, Connection, Host, Origin, User-Agent, Referer, Cache-Control, X-header")
+
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		fmt.Println("ok")
+
+		// Next
+		next.ServeHTTP(w, r)
+		return
+	})
+}
+
 func main() {
 	initRoute()
 }
@@ -43,7 +64,7 @@ func initRoute() {
 	var port = os.Getenv("PORT")
 	if port == "" {
 		println("Using default port 8080")
-		port = "8080"
+		port = "8081"
 	}
 	router := mux.NewRouter()
 	router.HandleFunc("/", homeHandler)
@@ -59,14 +80,7 @@ func initRoute() {
 	//Handler for get finance status
 	router.HandleFunc("/mahasiswa/finance/{token}", mhsFinance).Methods("GET")
 
-	// Handle all preflight request
-	router.Methods("OPTIONS").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, Access-Control-Request-Headers, Access-Control-Request-Method, Connection, Host, Origin, User-Agent, Referer, Cache-Control, X-header")
-		w.WriteHeader(http.StatusNoContent)
-		return
-	})
+	router.Use(CORS)
 	router.NotFoundHandler = http.HandlerFunc(notFound)
 	router.StrictSlash(true)
 	color.Warn.Println("Connected to port " + port)
