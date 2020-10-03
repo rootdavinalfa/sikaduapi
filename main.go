@@ -7,11 +7,15 @@
 package main
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/gookit/color"
 	"github.com/gorilla/mux"
+	"io"
 	"log"
+	"mime"
 	"net/http"
 	"net/url"
 	"os"
@@ -64,7 +68,7 @@ func initRoute() {
 	var port = os.Getenv("PORT")
 	if port == "" {
 		println("Using default port 8080")
-		port = "8081"
+		port = "8080"
 	}
 	router := mux.NewRouter()
 	router.HandleFunc("/", homeHandler)
@@ -77,6 +81,7 @@ func initRoute() {
 	router.HandleFunc("/mahasiswa/grade/{year}/{quart}/{token}", mhsGradeDetail).Methods("GET")
 	//Handler for get summary grade
 	router.HandleFunc("/mahasiswa/grade/summary/{token}", mhsGradeSummary).Methods("GET")
+	router.HandleFunc("/mahasiswa/report/grade/{year}/{quart}/{token}", documentGradeHandler).Methods("GET")
 	//Handler for get finance status
 	router.HandleFunc("/mahasiswa/finance/{token}", mhsFinance).Methods("GET")
 
@@ -178,6 +183,41 @@ func loginHandlerMhs(w http.ResponseWriter, r *http.Request) {
 		Token:   Descc,
 	}
 	_, _ = fmt.Fprint(w, string(MustMarshal(response)))
+}
+
+func documentGradeHandler(w http.ResponseWriter, r *http.Request) {
+	LogConsoleHttpReq(r)
+	params := mux.Vars(r)
+	token := params["token"]
+	year := params["year"]
+	quart := params["quart"]
+
+	hash := md5.New()
+
+	_, _ = io.WriteString(hash, year+quart) // append into the hash
+
+	mdhex := hex.EncodeToString(hash.Sum(nil))
+
+	isOk, data, message := jwt.VerifyToken(token)
+	if isOk {
+		jsosString := MustMarshal(data)
+		var auth model.LoginAuth
+		_ = json.Unmarshal(jsosString, &auth)
+
+		f := Student.GetResponse("http://sikadu.unbaja.ac.id/mahasiswa/akademik/khs/cetak/"+mdhex, auth.Cookie, auth.User)
+		ganjilGenap := ""
+		if quart == "1" {
+			ganjilGenap = "Ganjil"
+		} else {
+			ganjilGenap = "Genap"
+		}
+		cd := mime.FormatMediaType("attachment", map[string]string{"filename": "khs-" + auth.User + "-Semester " + ganjilGenap + " Tahun " + year + ".pdf"})
+		w.Header().Set("Content-Disposition", cd)
+		w.Header().Set("Content-Type", "application/octet-stream")
+		http.ServeContent(w, r, f.Name(), time.Now(), f)
+	} else {
+		_, _ = fmt.Fprint(w, string(MustMarshal(message)))
+	}
 }
 
 func loginHandlerDsn(w http.ResponseWriter, r *http.Request) {

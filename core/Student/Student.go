@@ -11,10 +11,12 @@ import (
 	"encoding/hex"
 	"github.com/PuerkitoBio/goquery"
 	"io"
+	"io/ioutil"
 	"log"
 	"math"
 	"net/http"
 	url2 "net/url"
+	"os"
 	"strconv"
 	"strings"
 	siteUrl "unbajaUAPI/config"
@@ -237,6 +239,7 @@ func GetStudentGradeSummary(cookieVal string, studentID string) interface{} {
 			periodic := gradesM[i][0]
 			evenOdd := periodic[len(periodic)-2:]
 			year := periodic[:4]
+
 			var quart string
 			if evenOdd == "il" {
 				quart = "1"
@@ -458,4 +461,37 @@ func MakeRequest(url string, cookieVal string) *goquery.Document {
 		log.Fatal("Error loading HTTP response body. ", err)
 	}
 	return document
+}
+
+func GetResponse(url string, cookieVal string, user string) *os.File {
+	client := http.Client{}
+	request, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	// Create a new cookie with the only required fields
+	myCookie := &http.Cookie{
+		Name:  "ci_session",
+		Value: cookieVal,
+	}
+	// Add the cookie to request
+	request.AddCookie(myCookie)
+	resp, err := client.Do(request)
+	if err != nil && resp == nil {
+		println(err.Error())
+	}
+
+	if resp.StatusCode == http.StatusOK {
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			log.Fatal(err)
+		}
+		file, err := os.Create(user + "-khs" + ".pdf")
+		if err != nil {
+			panic(err)
+		}
+		file.Write(bodyBytes)
+		return file
+	}
+	return nil
 }
