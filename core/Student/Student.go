@@ -387,6 +387,8 @@ func GetFinanceStatus(cookieVal string) interface{} {
 			first, _ := strconv.Atoi(strings.Replace(finances[i][4], ",", "", -1))
 			second, _ := strconv.Atoi(strings.Replace(finances[i][5], ",", "", -1))
 			third, _ := strconv.Atoi(strings.Replace(finances[i][6], ",", "", -1))
+			fourth, _ := strconv.Atoi(strings.Replace(finances[i][7], ",", "", -1))
+			fifth, _ := strconv.Atoi(strings.Replace(finances[i][8], ",", "", -1))
 			remain := first + second + third
 			oddEven := period[len(period)-3:]
 			percentage := 0.00
@@ -419,6 +421,8 @@ func GetFinanceStatus(cookieVal string) interface{} {
 				First:      first,
 				Second:     second,
 				Third:      third,
+				Fourth:     fourth,
+				Fifth:      fifth,
 				Remain:     remain,
 				Percentage: percentage,
 				Status:     status,

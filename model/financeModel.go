@@ -11,12 +11,12 @@ type FinanceDetail struct {
 	Bill            []FinanceBilled
 }
 type FinanceBilled struct {
-	No                           int
-	Quart                        int
-	Period                       string
-	Charged                      int
-	Paid                         int
-	First, Second, Third, Remain int
-	Percentage                   float64
-	Status                       string
+	No                                          int
+	Quart                                       int
+	Period                                      string
+	Charged                                     int
+	Paid                                        int
+	First, Second, Third, Fourth, Fifth, Remain int
+	Percentage                                  float64
+	Status                                      string
 }
