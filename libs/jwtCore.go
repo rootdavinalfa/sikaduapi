@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019. dvnlabs.ml
+ * Copyright (c) 2019 - 2020. dvnlabs.xyz
  * Davin Alfarizky Putra Basudewa <dbasudewa@gmail.com>
  * API For sikadu.unbaja.ac.id
  */

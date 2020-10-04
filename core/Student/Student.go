@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 -2020. dvnlabs.xyz
+ * Copyright (c) 2019 - 2020. dvnlabs.xyz
  * Davin Alfarizky Putra Basudewa <dbasudewa@gmail.com>
  * API For sikadu.unbaja.ac.id
  */
@@ -463,7 +463,7 @@ func MakeRequest(url string, cookieVal string) *goquery.Document {
 	return document
 }
 
-func GetResponse(url string, cookieVal string, user string) *os.File {
+func GetStreamResponse(url string, cookieVal string, fileName string) *os.File {
 	client := http.Client{}
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -486,7 +486,7 @@ func GetResponse(url string, cookieVal string, user string) *os.File {
 		if err != nil {
 			log.Fatal(err)
 		}
-		file, err := os.Create(user + "-khs" + ".pdf")
+		file, err := os.Create(fileName)
 		if err != nil {
 			panic(err)
 		}

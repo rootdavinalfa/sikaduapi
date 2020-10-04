@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019. dvnlabs.ml
+ * Copyright (c) 2019 - 2020. dvnlabs.xyz
  * Davin Alfarizky Putra Basudewa <dbasudewa@gmail.com>
  * API For sikadu.unbaja.ac.id
  */
@@ -81,9 +81,11 @@ func initRoute() {
 	router.HandleFunc("/mahasiswa/grade/{year}/{quart}/{token}", mhsGradeDetail).Methods("GET")
 	//Handler for get summary grade
 	router.HandleFunc("/mahasiswa/grade/summary/{token}", mhsGradeSummary).Methods("GET")
-	router.HandleFunc("/mahasiswa/report/grade/{year}/{quart}/{token}", documentGradeHandler).Methods("GET")
 	//Handler for get finance status
 	router.HandleFunc("/mahasiswa/finance/{token}", mhsFinance).Methods("GET")
+	//Report
+	router.HandleFunc("/mahasiswa/report/grade/{year}/{quart}/{token}", documentGradeHandler).Methods("GET")
+	router.HandleFunc("/mahasiswa/report/transcript/{token}", documentTranscriptHandler).Methods("GET")
 
 	router.Use(CORS)
 	router.NotFoundHandler = http.HandlerFunc(notFound)
@@ -116,9 +118,9 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 	LogConsoleHttpReq(r)
 	home := res{
 		Error:       false,
-		Message:     "(c)2019 dvnlabs.ml -> Davin Alfarizky Putra Basudewa",
+		Message:     "(c)2019 - 2020 dvnlabs.xyz -> Davin Alfarizky Putra Basudewa",
 		Description: "This is Unofficial API for sikadu.unbaja.ac.id JSON Ready! 🎏 🈷 . You must /login/mahasiswa before any request and save token.The token is valid for 1 hour.Because sikadu not even have error handler,we cannot determine token is valid or not",
-		Creator:     "https://dvnlabs.ml",
+		Creator:     "https://dvnlabs.xyz",
 		SourceCode:  "https://github.com/rootdavinalfa/sikaduapi",
 	}
 	var homeJson = string(MustMarshal(home))
@@ -203,15 +205,37 @@ func documentGradeHandler(w http.ResponseWriter, r *http.Request) {
 		jsosString := MustMarshal(data)
 		var auth model.LoginAuth
 		_ = json.Unmarshal(jsosString, &auth)
-
-		f := Student.GetResponse("http://sikadu.unbaja.ac.id/mahasiswa/akademik/khs/cetak/"+mdhex, auth.Cookie, auth.User)
 		ganjilGenap := ""
 		if quart == "1" {
 			ganjilGenap = "Ganjil"
 		} else {
 			ganjilGenap = "Genap"
 		}
-		cd := mime.FormatMediaType("attachment", map[string]string{"filename": "khs-" + auth.User + "-Semester " + ganjilGenap + " Tahun " + year + ".pdf"})
+		fileName := "khs-" + auth.User + "-Semester " + ganjilGenap + "-Tahun" + year + ".pdf"
+		f := Student.GetStreamResponse("http://sikadu.unbaja.ac.id/mahasiswa/akademik/khs/cetak/"+mdhex, auth.Cookie, fileName)
+		cd := mime.FormatMediaType("attachment", map[string]string{"filename": fileName})
+		w.Header().Set("Content-Disposition", cd)
+		w.Header().Set("Content-Type", "application/octet-stream")
+		http.ServeContent(w, r, f.Name(), time.Now(), f)
+	} else {
+		_, _ = fmt.Fprint(w, string(MustMarshal(message)))
+	}
+}
+
+func documentTranscriptHandler(w http.ResponseWriter, r *http.Request) {
+	LogConsoleHttpReq(r)
+	params := mux.Vars(r)
+	token := params["token"]
+
+	isOk, data, message := jwt.VerifyToken(token)
+	if isOk {
+		jsosString := MustMarshal(data)
+		var auth model.LoginAuth
+		_ = json.Unmarshal(jsosString, &auth)
+		fileName := "transcript-" + auth.User + ".pdf"
+		f := Student.GetStreamResponse("http://sikadu.unbaja.ac.id/mahasiswa/akademik/printtranskip?nipd="+auth.User, auth.Cookie, fileName)
+
+		cd := mime.FormatMediaType("attachment", map[string]string{"filename": fileName})
 		w.Header().Set("Content-Disposition", cd)
 		w.Header().Set("Content-Type", "application/octet-stream")
 		http.ServeContent(w, r, f.Name(), time.Now(), f)
@@ -226,7 +250,7 @@ func loginHandlerDsn(w http.ResponseWriter, r *http.Request) {
 	home := res{
 		Error:       false,
 		Message:     "This endpoint not implemented caused by not enough information",
-		Description: "🆗 This is sikadu.unbaja.ac.id Unofficial API written by Davin Alfarizky Putra Basudewa - 1101171082. (c)2019 dvnlabs.ml",
+		Description: "🆗 This is sikadu.unbaja.ac.id Unofficial API written by Davin Alfarizky Putra Basudewa - 1101171082. (c)2019 - 2020 dvnlabs.xyz",
 	}
 	var homeJson = string(MustMarshal(home))
 	_, _ = fmt.Fprint(w, homeJson)
