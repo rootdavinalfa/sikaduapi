@@ -5,7 +5,8 @@ Email : dbasudewa@gmail.com / moshi2_davin@dvnlabs.ml
 
 ## Unofficial API untuk Sistem Informasi Akademik Universitas Banten Jaya   
 Live URL hosted on Heroku [API live](https://sikadu-unbaja.herokuapp.com/)  
-  
+
+API Documentation [Postman Documenter](https://documenter.getpostman.com/view/6445831/SVtYSSLk)
   
 ## Untuk Apa API ini?  
   
